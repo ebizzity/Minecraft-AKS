@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minecraft-bdr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: minecraft-bdr
+  template:
+    metadata:
+      labels:
+        app: minecraft-bdr
+    spec:
+      containers:
+      - name: minecraft
+        image: itzg/minecraft-bedrock-server
+        ports:
+        - containerPort: 19132
+        volumeMounts:
+        - mountPath: "/data"
+          name: data
+        env:
+          - name: "EULA"
+            value: "TRUE"
+          - name: "GAMEMODE"
+            value: "creative"
+          - name: "ALLOW_CHEATS"
+            value: "true"
+          - name: "SERVER_NAME"
+            value: "BEDROCK-AKS"
+      volumes:
+       - name: data
+         persistentVolumeClaim:
+           claimName: mcbdr-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minecraft-bdr
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 19132
+    targetPort: 19132
+    protocol: UDP
+  selector:
+    app: minecraft-bdr
